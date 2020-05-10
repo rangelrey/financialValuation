@@ -1,51 +1,89 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[75]:
 
 
 #official original API connection
+#https://financialmodelingprep.com/developer/docs/#Company-Financial-Ratios
+#https://fmpcloud.io/documentation#financialRatios
+from pprint import pprint
+import pandas as pd
+import json
+from pandas.io.json import json_normalize
+from io import StringIO
+import urllib.request 
+apikey = 'e0d7409bfcfa162e155764a86f84d0d2'
 
-#import pandas as pd
-
-#import json
-#import urllib.request 
+#stocks_list = ['AAPL','E3X1','PCE1','ZO1']
+stocks_list = ['EXPE','AMS','AAPL']
 
 
+# In[103]:
 
-# In[209]:
 
 
-ratiosDf = pd.DataFrame()
 
-for stock in stocks_list:
+def getData(report,info,stocks_list):
 
-    webURL = urllib.request.urlopen(f'https://fmpcloud.io/api/v3/financial-ratios/{stock}?period=quarter&apikey={apikey}')
-    data = webURL.read()
-    encoding = webURL.info().get_content_charset('utf-8')
-    data_json = json.loads(data.decode(encoding))
-    dataList = []
-    df = pd.DataFrame()
-    df = json_normalize(data_json["ratios"])
-    df["firm"] = stock
+    finalDf = pd.DataFrame()
+    for stock in stocks_list:
+        print(f'Starting with {stock}')
+        if report == "financial-ratios":
+            webURL = urllib.request.urlopen(f'https://fmpcloud.io/api/v3/{report}/{stock}?period=quarter&apikey={apikey}')
+            data = webURL.read()
+            encoding = webURL.info().get_content_charset('utf-8')
+            data_json = json.loads(data.decode(encoding))
+            df = pd.DataFrame()
+            df = json_normalize(data_json[str(info)])
+            df["firm"] = stock
+            
+        elif report =="income-statement":
+            webURL = f'https://fmpcloud.io/api/v3/{report}/{stock}?period=quarter&apikey={apikey}'
+
+            response = urlopen(webURL)
+            data = response.read().decode("utf-8")
+            
+            df = json_normalize(json.loads(data))
+
+        #url = ("https://financialmodelingprep.com/api/v3/financials/income-statement/AAPL")
+        #print(get_jsonparsed_data(url))
+
+        finalDf = finalDf.append(df)
     
-    ratiosDf = ratiosDf.append(df)
+    
+    
+    return finalDf.set_index("date")
+
+
+# In[104]:
+
+
+df =getData("income-statement","financials",stocks_list)
+
+
+# In[94]:
+
+
+df =getData("financial-ratios","ratios",stocks_list)
+
+
+# In[ ]:
 
 
 
 
-# In[210]:
+
+# In[ ]:
 
 
-#reorder columns
-columns = rationsDf.columns.tolist()
-rationsDf = df1[columns[-1:] +columns[:-1]]
 
 
-# In[212]:
+
+# In[ ]:
 
 
-ratiosDf
+
 
 
 # In[ ]:
@@ -64,6 +102,8 @@ ratiosDf
 
 
 import ipywidgets as widgets
+
+#https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Basics.html
 
 
 # In[ ]:

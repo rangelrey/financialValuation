@@ -13076,15 +13076,22 @@ div#notebook {
 
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="prompt input_prompt">In&nbsp;[75]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#official original API connection</span>
+<span class="c1">#https://financialmodelingprep.com/developer/docs/#Company-Financial-Ratios</span>
+<span class="c1">#https://fmpcloud.io/documentation#financialRatios</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">pandas.io.json</span> <span class="kn">import</span> <span class="n">json_normalize</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span> 
+<span class="n">apikey</span> <span class="o">=</span> <span class="s1">&#39;e0d7409bfcfa162e155764a86f84d0d2&#39;</span>
 
-<span class="c1">#import pandas as pd</span>
-
-<span class="c1">#import json</span>
-<span class="c1">#import urllib.request </span>
+<span class="c1">#stocks_list = [&#39;AAPL&#39;,&#39;E3X1&#39;,&#39;PCE1&#39;,&#39;ZO1&#39;]</span>
+<span class="n">stocks_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;EXPE&#39;</span><span class="p">,</span><span class="s1">&#39;AMS&#39;</span><span class="p">,</span><span class="s1">&#39;AAPL&#39;</span><span class="p">]</span>
 </pre></div>
 
     </div>
@@ -13094,23 +13101,52 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[209]:</div>
+<div class="prompt input_prompt">In&nbsp;[103]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ratiosDf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="n">report</span><span class="p">,</span><span class="n">info</span><span class="p">,</span><span class="n">stocks_list</span><span class="p">):</span>
 
-<span class="k">for</span> <span class="n">stock</span> <span class="ow">in</span> <span class="n">stocks_list</span><span class="p">:</span>
+    <span class="n">finalDf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">stock</span> <span class="ow">in</span> <span class="n">stocks_list</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Starting with </span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">report</span> <span class="o">==</span> <span class="s2">&quot;financial-ratios&quot;</span><span class="p">:</span>
+            <span class="n">webURL</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://fmpcloud.io/api/v3/</span><span class="si">{</span><span class="n">report</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">?period=quarter&amp;apikey=</span><span class="si">{</span><span class="n">apikey</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">encoding</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">info</span><span class="p">()</span><span class="o">.</span><span class="n">get_content_charset</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="n">data_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">))</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">json_normalize</span><span class="p">(</span><span class="n">data_json</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">info</span><span class="p">)])</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;firm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stock</span>
+            
+        <span class="k">elif</span> <span class="n">report</span> <span class="o">==</span><span class="s2">&quot;income-statement&quot;</span><span class="p">:</span>
+            <span class="n">webURL</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;https://fmpcloud.io/api/v3/</span><span class="si">{</span><span class="n">report</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">?period=quarter&amp;apikey=</span><span class="si">{</span><span class="n">apikey</span><span class="si">}</span><span class="s1">&#39;</span>
 
-    <span class="n">webURL</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://fmpcloud.io/api/v3/financial-ratios/</span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">?period=quarter&amp;apikey=</span><span class="si">{</span><span class="n">apikey</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-    <span class="n">encoding</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">info</span><span class="p">()</span><span class="o">.</span><span class="n">get_content_charset</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-    <span class="n">data_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">))</span>
-    <span class="n">dataList</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">json_normalize</span><span class="p">(</span><span class="n">data_json</span><span class="p">[</span><span class="s2">&quot;ratios&quot;</span><span class="p">])</span>
-    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;firm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stock</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">webURL</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            
+            <span class="n">df</span> <span class="o">=</span> <span class="n">json_normalize</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+        <span class="c1">#url = (&quot;https://financialmodelingprep.com/api/v3/financials/income-statement/AAPL&quot;)</span>
+        <span class="c1">#print(get_jsonparsed_data(url))</span>
+
+        <span class="n">finalDf</span> <span class="o">=</span> <span class="n">finalDf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
     
-    <span class="n">ratiosDf</span> <span class="o">=</span> <span class="n">ratiosDf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    
+    
+    <span class="k">return</span> <span class="n">finalDf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[104]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;income-statement&quot;</span><span class="p">,</span><span class="s2">&quot;financials&quot;</span><span class="p">,</span><span class="n">stocks_list</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -13126,9 +13162,31 @@ div#notebook {
     <div class="prompt"></div>
 
 
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Starting with EXPE
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
 <div class="output_subarea output_stream output_stderr output_text">
-<pre>/home/rangelrey/.local/share/virtualenvs/financialvaluation-p1E6WKqh/lib/python3.6/site-packages/ipykernel_launcher.py:11: FutureWarning: pandas.io.json.json_normalize is deprecated, use pandas.json_normalize instead
-  # This is added back by InteractiveShellApp.init_path()
+<pre>/home/rangelrey/.local/share/virtualenvs/financialvaluation-p1E6WKqh/lib/python3.6/site-packages/ipykernel_launcher.py:21: FutureWarning: pandas.io.json.json_normalize is deprecated, use pandas.json_normalize instead
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Starting with AMS
+Starting with AAPL
 </pre>
 </div>
 </div>
@@ -13139,25 +13197,10 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[210]:</div>
+<div class="prompt input_prompt">In&nbsp;[94]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#reorder columns</span>
-<span class="n">columns</span> <span class="o">=</span> <span class="n">rationsDf</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-<span class="n">rationsDf</span> <span class="o">=</span> <span class="n">df1</span><span class="p">[</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span><span class="n">columns</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[212]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ratiosDf</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;financial-ratios&quot;</span><span class="p">,</span><span class="s2">&quot;ratios&quot;</span><span class="p">,</span><span class="n">stocks_list</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -13170,565 +13213,78 @@ div#notebook {
 
 <div class="output_area">
 
-    <div class="prompt output_prompt">Out[212]:</div>
+    <div class="prompt"></div>
 
 
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Starting with EXPE
+</pre>
+</div>
+</div>
 
-<div class="output_html rendered_html output_subarea output_execute_result">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
+<div class="output_area">
 
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
+    <div class="prompt"></div>
 
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>date</th>
-      <th>investmentValuationRatios.priceBookValueRatio</th>
-      <th>investmentValuationRatios.priceToBookRatio</th>
-      <th>investmentValuationRatios.priceToSalesRatio</th>
-      <th>investmentValuationRatios.priceEarningsRatio</th>
-      <th>investmentValuationRatios.receivablesTurnover</th>
-      <th>investmentValuationRatios.priceToFreeCashFlowsRatio</th>
-      <th>investmentValuationRatios.priceToOperatingCashFlowsRatio</th>
-      <th>investmentValuationRatios.priceCashFlowRatio</th>
-      <th>investmentValuationRatios.priceEarningsToGrowthRatio</th>
-      <th>...</th>
-      <th>cashFlowIndicatorRatios.payoutRatio</th>
-      <th>cashFlowIndicatorRatios.receivablesTurnover</th>
-      <th>cashFlowIndicatorRatios.operatingCashFlowSalesRatio</th>
-      <th>cashFlowIndicatorRatios.freeCashFlowOperatingCashFlowRatio</th>
-      <th>cashFlowIndicatorRatios.cashFlowCoverageRatios</th>
-      <th>cashFlowIndicatorRatios.shortTermCoverageRatios</th>
-      <th>cashFlowIndicatorRatios.capitalExpenditureCoverageRatios</th>
-      <th>cashFlowIndicatorRatios.dividendpaidAndCapexCoverageRatios</th>
-      <th>cashFlowIndicatorRatios.dividendPayoutRatio</th>
-      <th>firm</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>2019-09-28</td>
-      <td>12.709658271815046</td>
-      <td>12.709658271815046</td>
-      <td>4.420393881402446</td>
-      <td>20.81351450883162</td>
-      <td>11.34842536857716</td>
-      <td>19.527159020986144</td>
-      <td>16.573785616290298</td>
-      <td>16.573785616290298</td>
-      <td>1.6145093305735827</td>
-      <td>...</td>
-      <td>0.25551976255972203</td>
-      <td>11.34842536857716</td>
-      <td>0.2667099710193947</td>
-      <td>0.848755602311539</td>
-      <td>0.6798573486043481</td>
-      <td>6.7632553606237815</td>
-      <td>6.611815150071463</td>
-      <td>2.8191679531973675</td>
-      <td>0.25551976255972203</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>2018-09-29</td>
-      <td>9.815759792434694</td>
-      <td>9.815759792434694</td>
-      <td>3.95989839597884</td>
-      <td>17.66691663973392</td>
-      <td>11.45497282843095</td>
-      <td>16.402258456355952</td>
-      <td>13.5822663749774</td>
-      <td>13.5822663749774</td>
-      <td>1.4705990555753263</td>
-      <td>...</td>
-      <td>0.23033377567989788</td>
-      <td>11.45497282843095</td>
-      <td>0.29154916319960844</td>
-      <td>0.8280729395356046</td>
-      <td>0.7553136491772257</td>
-      <td>8.815346083788707</td>
-      <td>5.816420040561857</td>
-      <td>2.86527289546716</td>
-      <td>0.23033377567989785</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>2017-09-30</td>
-      <td>6.4889075193029315</td>
-      <td>6.4889075193029315</td>
-      <td>3.79445713218807</td>
-      <td>17.989671076916714</td>
-      <td>12.824997202640708</td>
-      <td>17.121402008542802</td>
-      <td>13.676822954180947</td>
-      <td>13.676822954180947</td>
-      <td>1.576598201083051</td>
-      <td>...</td>
-      <td>0.264089677566131</td>
-      <td>12.824997202640708</td>
-      <td>0.27743702941099485</td>
-      <td>0.7988144281266707</td>
-      <td>0.6132705900504325</td>
-      <td>9.79033251231527</td>
-      <td>4.9705353653771</td>
-      <td>2.4877953371929276</td>
-      <td>0.26408967756613105</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>2016-09-24</td>
-      <td>5.018689993684161</td>
-      <td>5.018689993684161</td>
-      <td>2.9848124550753807</td>
-      <td>14.088076980322631</td>
-      <td>13.687888790148534</td>
-      <td>12.31237992577856</td>
-      <td>9.778226376397667</td>
-      <td>9.778226376397667</td>
-      <td>1.294675602719401</td>
-      <td>...</td>
-      <td>0.26593998292730975</td>
-      <td>13.687888790148534</td>
-      <td>0.30525090544845784</td>
-      <td>0.79417841516772</td>
-      <td>0.8339858350120998</td>
-      <td>18.806857142857144</td>
-      <td>4.858576911721287</td>
-      <td>2.5614444703868005</td>
-      <td>0.26593998292730975</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>2015-09-26</td>
-      <td>5.556988587658665</td>
-      <td>5.556988587658665</td>
-      <td>2.8378767853154483</td>
-      <td>12.421889592088998</td>
-      <td>13.871149623123033</td>
-      <td>9.505207556536444</td>
-      <td>8.161523550808456</td>
-      <td>8.161523550808456</td>
-      <td>1.2005234321413427</td>
-      <td>...</td>
-      <td>0.2165224557066337</td>
-      <td>13.871149623123033</td>
-      <td>0.3477140962283123</td>
-      <td>0.8586370683926857</td>
-      <td>1.4521380197630578</td>
-      <td>32.5064</td>
-      <td>7.0739902506963785</td>
-      <td>3.5257928760466832</td>
-      <td>0.21652245570663367</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>2014-09-27</td>
-      <td>5.7343942277246365</td>
-      <td>5.7343942277246365</td>
-      <td>3.4992996138844057</td>
-      <td>16.189685470007593</td>
-      <td>10.469358533791523</td>
-      <td>12.818726912224449</td>
-      <td>10.712147654949508</td>
-      <td>10.712147654949508</td>
-      <td>1.6549948192552626</td>
-      <td>...</td>
-      <td>0.2815995950392306</td>
-      <td>10.469358533791523</td>
-      <td>0.32666648431302825</td>
-      <td>0.8356639257783063</td>
-      <td>1.6918260376823913</td>
-      <td>9.466233354470514</td>
-      <td>6.085091205543667</td>
-      <td>2.8517598739194803</td>
-      <td>0.28159959503923054</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>2013-09-28</td>
-      <td>0.5669617455422545</td>
-      <td>0.5669617455422545</td>
-      <td>0.4098505453162483</td>
-      <td>1.8912859221859222</td>
-      <td>13.044573347580522</td>
-      <td>1.5709252455707559</td>
-      <td>1.3052501900644728</td>
-      <td>1.3052501900644728</td>
-      <td>0.029397549069597715</td>
-      <td>...</td>
-      <td>0.28522828522828525</td>
-      <td>13.044573347580522</td>
-      <td>0.3140015212685039</td>
-      <td>0.8308798867066671</td>
-      <td>3.1642688679245</td>
-      <td></td>
-      <td>5.9129572498898195</td>
-      <td>2.7324847250509166</td>
-      <td>0.2852282852282852</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>2012-09-29</td>
-      <td>0.6823910432281534</td>
-      <td>0.6823910432281534</td>
-      <td>0.515407808035372</td>
-      <td>1.9328935187980736</td>
-      <td>14.319121683440073</td>
-      <td>1.9459025720075265</td>
-      <td>1.5861539487966023</td>
-      <td>1.5861539487966023</td>
-      <td>0.030352314818426995</td>
-      <td>...</td>
-      <td>0.05961708959336736</td>
-      <td>14.319121683440073</td>
-      <td>0.32494185600736064</td>
-      <td>0.8151250589900897</td>
-      <td></td>
-      <td></td>
-      <td>5.409061901723038</td>
-      <td>4.277207737594617</td>
-      <td>0.05961708959336735</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>2011-09-24</td>
-      <td>0.6993308916008614</td>
-      <td>0.6993308916008614</td>
-      <td>0.4949628750381066</td>
-      <td>2.0669406781884114</td>
-      <td>20.161855094058485</td>
-      <td>1.7814022761578614</td>
-      <td>1.4276755644967891</td>
-      <td>1.4276755644967891</td>
-      <td>0.03209061593692471</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>20.161855094058485</td>
-      <td>0.3466914244011492</td>
-      <td>0.8014335580484425</td>
-      <td></td>
-      <td></td>
-      <td>5.036097691894794</td>
-      <td>5.0360976918948</td>
-      <td>-0</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>2010-09-25</td>
-      <td>0.8396020028875729</td>
-      <td>0.8396020028875729</td>
-      <td>0.6151846580298965</td>
-      <td>2.8634424691358022</td>
-      <td>11.837568058076226</td>
-      <td>2.4356816389462184</td>
-      <td>2.1578606786770633</td>
-      <td>2.1578606786770633</td>
-      <td>0.043745095016423645</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>11.837568058076226</td>
-      <td>0.2850900728248371</td>
-      <td>0.8859370798601774</td>
-      <td></td>
-      <td></td>
-      <td>8.767090994813767</td>
-      <td>8.7670909948138</td>
-      <td>-0</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>2009-09-26</td>
-      <td>5.73362363029646</td>
-      <td>5.73362363029646</td>
-      <td>4.228221691238317</td>
-      <td>22.02936875076867</td>
-      <td>8.484279216927032</td>
-      <td>20.278543668967135</td>
-      <td>17.857254814704206</td>
-      <td>17.857254814704206</td>
-      <td>2.3204707440778867</td>
-      <td>...</td>
-      <td>-0.0</td>
-      <td>8.484279216927032</td>
-      <td>0.23677893019461602</td>
-      <td>0.880598484102766</td>
-      <td></td>
-      <td></td>
-      <td>-8.37510305028854</td>
-      <td>8.3751030502885</td>
-      <td>-0</td>
-      <td>AAPL</td>
-    </tr>
-    <tr>
-      <th>0</th>
-      <td>2019-12-31</td>
-      <td>5.9176145427197335</td>
-      <td>5.9176145427197335</td>
-      <td>8.45861380256588</td>
-      <td>32.35047984852583</td>
-      <td>7.427715906703089</td>
-      <td>28.19152460871205</td>
-      <td>16.46744010574434</td>
-      <td>16.46744010574434</td>
-      <td>4.175482520246596</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>7.427715906703089</td>
-      <td>0.5136568737004399</td>
-      <td>0.5841273338106515</td>
-      <td>3.5174351026733826</td>
-      <td>45.3925</td>
-      <td>2.4045821745464178</td>
-      <td></td>
-      <td></td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>2018-12-31</td>
-      <td>5.167351742009105</td>
-      <td>5.167351742009105</td>
-      <td>7.785268096994876</td>
-      <td>19.659632778581763</td>
-      <td>7.3596942137867405</td>
-      <td>28.303522364737283</td>
-      <td>14.849825783972125</td>
-      <td>14.849825783972125</td>
-      <td>2.569479862974914</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>7.3596942137867405</td>
-      <td>0.5242666284609048</td>
-      <td>0.5246635239461638</td>
-      <td></td>
-      <td></td>
-      <td>2.1037729069349624</td>
-      <td>2.103772906935</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>2017-12-31</td>
-      <td>7.301372214077233</td>
-      <td>7.301372214077233</td>
-      <td>13.35289203748801</td>
-      <td>34.06772436299737</td>
-      <td>6.970679012345679</td>
-      <td>31.049311902991477</td>
-      <td>22.416382556987116</td>
-      <td>22.416382556987116</td>
-      <td>4.4695399953444</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>6.970679012345679</td>
-      <td>0.5956755958969818</td>
-      <td>0.7219606871489924</td>
-      <td></td>
-      <td></td>
-      <td>3.5966136937472153</td>
-      <td>3.5966136937472</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>2016-12-31</td>
-      <td>6.335029563807143</td>
-      <td>6.335029563807143</td>
-      <td>13.568121427020767</td>
-      <td>36.70311637466966</td>
-      <td>6.921612822439268</td>
-      <td>32.27991219764139</td>
-      <td>23.28009312143034</td>
-      <td>23.28009312143034</td>
-      <td>4.752216994422904</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>6.921612822439268</td>
-      <td>0.5828207540343006</td>
-      <td>0.7211944375465608</td>
-      <td></td>
-      <td></td>
-      <td>3.586729013582721</td>
-      <td>3.5867290135827</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>2015-12-31</td>
-      <td>7.11304513998824</td>
-      <td>7.11304513998824</td>
-      <td>17.543765618027663</td>
-      <td>85.2832510845987</td>
-      <td>7.0058616647127785</td>
-      <td>51.76508064516129</td>
-      <td>36.57688452145598</td>
-      <td>36.57688452145598</td>
-      <td>10.810824565400242</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>7.0058616647127785</td>
-      <td>0.47964078536367694</td>
-      <td>0.7065937899755785</td>
-      <td>75.4298245614035</td>
-      <td>1228.4285714285713</td>
-      <td>3.4082441537851764</td>
-      <td>4.090368608799</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>2014-12-31</td>
-      <td>5.497250110815602</td>
-      <td>5.497250110815602</td>
-      <td>15.917595058559282</td>
-      <td>67.49276870748298</td>
-      <td>7.4290822407628125</td>
-      <td>54.7238665195808</td>
-      <td>36.36223932563679</td>
-      <td>36.36223932563679</td>
-      <td>7.978748977992065</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>7.4290822407628125</td>
-      <td>0.4377506818546446</td>
-      <td>0.664467656221367</td>
-      <td>23.4206008583691</td>
-      <td>47.86842105263158</td>
-      <td>2.9803386127799016</td>
-      <td>4.00109229929</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>2013-12-31</td>
-      <td>9.554854557207499</td>
-      <td>9.554854557207499</td>
-      <td>18.777134146341464</td>
-      <td>98.54239999999999</td>
-      <td>7.098286744815149</td>
-      <td>51.683076923076925</td>
-      <td>35.010326859308385</td>
-      <td>35.010326859308385</td>
-      <td>10.784759768451519</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>7.098286744815149</td>
-      <td>0.5363313008130082</td>
-      <td>0.6774040738986262</td>
-      <td>8.8697478991597</td>
-      <td>17.665271966527197</td>
-      <td>3.0998531571218795</td>
-      <td>3.0998531571219</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>2012-12-31</td>
-      <td>5.3311305827307525</td>
-      <td>5.3311305827307525</td>
-      <td>12.314293574376103</td>
-      <td>1182.4045283018868</td>
-      <td>7.0778859527121005</td>
-      <td>166.22663129973475</td>
-      <td>38.875583126550865</td>
-      <td>38.875583126550865</td>
-      <td>107.2677045845507</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>7.0778859527121005</td>
-      <td>0.31676164275889174</td>
-      <td>0.23387096774193547</td>
-      <td>0.864343163538874</td>
-      <td>4.416438356164384</td>
-      <td>1.305263157894737</td>
-      <td>1.3052631578947</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>2011-12-31</td>
-      <td>9.7678</td>
-      <td>10.131</td>
-      <td>15.2043</td>
-      <td>78.0204</td>
-      <td>8.0674</td>
-      <td>69.6831</td>
-      <td>37.4652</td>
-      <td>0</td>
-      <td>0</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td>8.0674</td>
-      <td>0.41740770681757</td>
-      <td>0.60877985797289</td>
-      <td>2.288035450517</td>
-      <td>5.5519713261649</td>
-      <td>2.5561056105611</td>
-      <td>2.5561056105611</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>2010-12-31</td>
-      <td>9.7678</td>
-      <td>10.131</td>
-      <td>15.2043</td>
-      <td>78.0204</td>
-      <td></td>
-      <td>69.6831</td>
-      <td>37.4652</td>
-      <td>0</td>
-      <td>0</td>
-      <td>...</td>
-      <td>0.0</td>
-      <td></td>
-      <td>0.35359675785208</td>
-      <td>0.58022922636103</td>
-      <td>1.4756871035941</td>
-      <td>6.5849056603774</td>
-      <td>2.382252559727</td>
-      <td>2.382252559727</td>
-      <td>-0</td>
-      <td>FB</td>
-    </tr>
-  </tbody>
-</table>
-<p>21 rows × 61 columns</p>
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>/home/rangelrey/.local/share/virtualenvs/financialvaluation-p1E6WKqh/lib/python3.6/site-packages/ipykernel_launcher.py:12: FutureWarning: pandas.io.json.json_normalize is deprecated, use pandas.json_normalize instead
+  if sys.path[0] == &#39;&#39;:
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Starting with AMS
+Starting with AAPL
+</pre>
 </div>
 </div>
 
 </div>
+</div>
 
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+    </div>
 </div>
 </div>
 
@@ -13765,6 +13321,8 @@ div#notebook {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">ipywidgets</span> <span class="k">as</span> <span class="nn">widgets</span>
+
+<span class="c1">#https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Basics.html</span>
 </pre></div>
 
     </div>
