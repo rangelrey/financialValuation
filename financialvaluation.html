@@ -13076,7 +13076,7 @@ div#notebook {
 
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[75]:</div>
+<div class="prompt input_prompt">In&nbsp;[154]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#official original API connection</span>
@@ -13087,11 +13087,19 @@ div#notebook {
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">pandas.io.json</span> <span class="kn">import</span> <span class="n">json_normalize</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
-<span class="kn">import</span> <span class="nn">urllib.request</span> 
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># For Python 3.0 and later</span>
+    <span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># Fall back to Python 2&#39;s urllib2</span>
+    <span class="kn">from</span> <span class="nn">urllib2</span> <span class="kn">import</span> <span class="n">urlopen</span>
+
+
 <span class="n">apikey</span> <span class="o">=</span> <span class="s1">&#39;e0d7409bfcfa162e155764a86f84d0d2&#39;</span>
 
-<span class="c1">#stocks_list = [&#39;AAPL&#39;,&#39;E3X1&#39;,&#39;PCE1&#39;,&#39;ZO1&#39;]</span>
-<span class="n">stocks_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;EXPE&#39;</span><span class="p">,</span><span class="s1">&#39;AMS&#39;</span><span class="p">,</span><span class="s1">&#39;AAPL&#39;</span><span class="p">]</span>
+
+<span class="n">stocks_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MELI&#39;</span><span class="p">,</span><span class="s1">&#39;AMS&#39;</span><span class="p">,</span><span class="s1">&#39;AAPL&#39;</span><span class="p">]</span>
 </pre></div>
 
     </div>
@@ -13101,39 +13109,66 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[103]:</div>
+<div class="prompt input_prompt">In&nbsp;[155]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="n">report</span><span class="p">,</span><span class="n">info</span><span class="p">,</span><span class="n">stocks_list</span><span class="p">):</span>
 
     <span class="n">finalDf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">stock</span> <span class="ow">in</span> <span class="n">stocks_list</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Starting with </span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">report</span> <span class="o">==</span> <span class="s2">&quot;financial-ratios&quot;</span><span class="p">:</span>
-            <span class="n">webURL</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://fmpcloud.io/api/v3/</span><span class="si">{</span><span class="n">report</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">?period=quarter&amp;apikey=</span><span class="si">{</span><span class="n">apikey</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-            <span class="n">encoding</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">info</span><span class="p">()</span><span class="o">.</span><span class="n">get_content_charset</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-            <span class="n">data_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">))</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">json_normalize</span><span class="p">(</span><span class="n">data_json</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">info</span><span class="p">)])</span>
-            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;firm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stock</span>
+
+    <span class="k">if</span> <span class="n">report</span> <span class="o">==</span> <span class="s2">&quot;financial-ratios&quot;</span><span class="p">:</span>   
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Downloading financial ratios </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stock</span> <span class="ow">in</span> <span class="n">stocks_list</span><span class="p">:</span>    
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Starting with </span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                
+                <span class="n">webURL</span> <span class="o">=</span><span class="n">urlopen</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://fmpcloud.io/api/v3/</span><span class="si">{</span><span class="n">report</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">?period=quarter&amp;apikey=</span><span class="si">{</span><span class="n">apikey</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">!=</span><span class="s2">&quot;b&#39;{ }&#39;&quot;</span><span class="p">:</span>         
+                    <span class="n">encoding</span> <span class="o">=</span> <span class="n">webURL</span><span class="o">.</span><span class="n">info</span><span class="p">()</span><span class="o">.</span><span class="n">get_content_charset</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+                    <span class="n">data_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">))</span>
+  
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">json_normalize</span><span class="p">(</span><span class="n">data_json</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">info</span><span class="p">)])</span>
+                    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stock</span> 
+                    <span class="n">finalDf</span> <span class="o">=</span> <span class="n">finalDf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">SYMBOL NOT FOUND: Check maybe Stock Symbol: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stock</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+ 
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--------------------------</span><span class="se">\n</span><span class="s2">CODE ERROR---------------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             
-        <span class="k">elif</span> <span class="n">report</span> <span class="o">==</span><span class="s2">&quot;income-statement&quot;</span><span class="p">:</span>
+
+                
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2">----- Done -----&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">finalDf</span><span class="p">[</span><span class="n">finalDf</span><span class="o">.</span><span class="n">columns</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">)</span>
+
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Downloading financials </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">stock</span> <span class="ow">in</span> <span class="n">stocks_list</span><span class="p">:</span> 
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Starting with </span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">webURL</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;https://fmpcloud.io/api/v3/</span><span class="si">{</span><span class="n">report</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">stock</span><span class="si">}</span><span class="s1">?period=quarter&amp;apikey=</span><span class="si">{</span><span class="n">apikey</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">webURL</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">data</span><span class="o">!=</span><span class="s2">&quot;[ ]&quot;</span><span class="p">:</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">json_normalize</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+                    <span class="n">finalDf</span> <span class="o">=</span> <span class="n">finalDf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">SYMBOL NOT FOUND: Check maybe Stock Symbol: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">stock</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="n">response</span> <span class="o">=</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">webURL</span><span class="p">)</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-            
-            <span class="n">df</span> <span class="o">=</span> <span class="n">json_normalize</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--------------------------</span><span class="se">\n</span><span class="s2">CODE ERROR---------------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                
 
-        <span class="c1">#url = (&quot;https://financialmodelingprep.com/api/v3/financials/income-statement/AAPL&quot;)</span>
-        <span class="c1">#print(get_jsonparsed_data(url))</span>
 
-        <span class="n">finalDf</span> <span class="o">=</span> <span class="n">finalDf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2">----- Done -----&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">finalDf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">)</span>
     
-    
-    
-    <span class="k">return</span> <span class="n">finalDf</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -13143,10 +13178,18 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[104]:</div>
+<div class="prompt input_prompt">In&nbsp;[157]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;income-statement&quot;</span><span class="p">,</span><span class="s2">&quot;financials&quot;</span><span class="p">,</span><span class="n">stocks_list</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">dividend_stock_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">df_fR</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;financial-ratios&quot;</span><span class="p">,</span><span class="s2">&quot;ratios&quot;</span><span class="p">,</span><span class="n">dividend_stock_list</span><span class="p">)</span>
+
+<span class="n">df_cF</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;cash-flow-statement&quot;</span><span class="p">,</span><span class="s2">&quot;financials&quot;</span><span class="p">,</span><span class="n">dividend_stock_list</span><span class="p">)</span>
+
+<span class="n">df_bS</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;balance-sheet-statement&quot;</span><span class="p">,</span><span class="s2">&quot;financials&quot;</span><span class="p">,</span><span class="n">dividend_stock_list</span><span class="p">)</span>
+
+<span class="n">df_iS</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;income-statement&quot;</span><span class="p">,</span><span class="s2">&quot;financials&quot;</span><span class="p">,</span><span class="n">dividend_stock_list</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -13163,7 +13206,10 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Starting with EXPE
+<pre>
+Downloading financial ratios 
+
+Starting with MELI
 </pre>
 </div>
 </div>
@@ -13174,7 +13220,7 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stderr output_text">
-<pre>/home/rangelrey/.local/share/virtualenvs/financialvaluation-p1E6WKqh/lib/python3.6/site-packages/ipykernel_launcher.py:21: FutureWarning: pandas.io.json.json_normalize is deprecated, use pandas.json_normalize instead
+<pre>/home/rangelrey/.local/share/virtualenvs/financialvaluation-p1E6WKqh/lib/python3.6/site-packages/ipykernel_launcher.py:19: FutureWarning: pandas.io.json.json_normalize is deprecated, use pandas.json_normalize instead
 </pre>
 </div>
 </div>
@@ -13187,37 +13233,13 @@ div#notebook {
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Starting with AMS
 Starting with AAPL
-</pre>
-</div>
-</div>
 
-</div>
-</div>
+ 
+----- Done -----
 
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[94]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span><span class="n">getData</span><span class="p">(</span><span class="s2">&quot;financial-ratios&quot;</span><span class="p">,</span><span class="s2">&quot;ratios&quot;</span><span class="p">,</span><span class="n">stocks_list</span><span class="p">)</span>
-</pre></div>
+Downloading financials 
 
-    </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Starting with EXPE
+Starting with MELI
 </pre>
 </div>
 </div>
@@ -13228,8 +13250,7 @@ Starting with AAPL
 
 
 <div class="output_subarea output_stream output_stderr output_text">
-<pre>/home/rangelrey/.local/share/virtualenvs/financialvaluation-p1E6WKqh/lib/python3.6/site-packages/ipykernel_launcher.py:12: FutureWarning: pandas.io.json.json_normalize is deprecated, use pandas.json_normalize instead
-  if sys.path[0] == &#39;&#39;:
+<pre>/home/rangelrey/.local/share/virtualenvs/financialvaluation-p1E6WKqh/lib/python3.6/site-packages/ipykernel_launcher.py:45: FutureWarning: pandas.io.json.json_normalize is deprecated, use pandas.json_normalize instead
 </pre>
 </div>
 </div>
@@ -13242,36 +13263,31 @@ Starting with AAPL
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Starting with AMS
 Starting with AAPL
+
+ 
+----- Done -----
+
+Downloading financials 
+
+Starting with MELI
+Starting with AMS
+Starting with AAPL
+
+ 
+----- Done -----
+
+Downloading financials 
+
+Starting with MELI
+Starting with AMS
+Starting with AAPL
+
+ 
+----- Done -----
 </pre>
 </div>
 </div>
 
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span> 
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span> 
-</pre></div>
-
-    </div>
 </div>
 </div>
 

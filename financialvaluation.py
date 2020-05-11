@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[75]:
+# In[154]:
 
 
 #official original API connection
@@ -12,72 +12,96 @@ import pandas as pd
 import json
 from pandas.io.json import json_normalize
 from io import StringIO
-import urllib.request 
+
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
+
+
 apikey = 'e0d7409bfcfa162e155764a86f84d0d2'
 
-#stocks_list = ['AAPL','E3X1','PCE1','ZO1']
-stocks_list = ['EXPE','AMS','AAPL']
+
+stocks_list = ['MELI','AMS','AAPL']
 
 
-# In[103]:
-
+# In[155]:
 
 
 
 def getData(report,info,stocks_list):
 
     finalDf = pd.DataFrame()
-    for stock in stocks_list:
-        print(f'Starting with {stock}')
-        if report == "financial-ratios":
-            webURL = urllib.request.urlopen(f'https://fmpcloud.io/api/v3/{report}/{stock}?period=quarter&apikey={apikey}')
-            data = webURL.read()
-            encoding = webURL.info().get_content_charset('utf-8')
-            data_json = json.loads(data.decode(encoding))
-            df = pd.DataFrame()
-            df = json_normalize(data_json[str(info)])
-            df["firm"] = stock
+
+    if report == "financial-ratios":   
+        print("\nDownloading financial ratios \n")
+        for stock in stocks_list:    
+            print(f'Starting with {stock}')
+            try:
+                
+                webURL =urlopen(f'https://fmpcloud.io/api/v3/{report}/{stock}?period=quarter&apikey={apikey}')
+                data = webURL.read()
+
+                if str(data)!="b'{ }'":         
+                    encoding = webURL.info().get_content_charset('utf-8')
+                    data_json = json.loads(data.decode(encoding))
+  
+                    df = pd.DataFrame()
+                    df = json_normalize(data_json[str(info)])
+                    df["symbol"] = stock 
+                    finalDf = finalDf.append(df)
+                else:
+                    print("\nSYMBOL NOT FOUND: Check maybe Stock Symbol: "+str(stock)+"\n\n")
+
+ 
+            except:
+                print("--------------------------\nCODE ERROR---------------------------------\n")
             
-        elif report =="income-statement":
+
+                
+        
+        print("\n \n----- Done -----")
+        return finalDf[finalDf.columns[::-1]].set_index("date")
+
+
+    else:
+        print("\nDownloading financials \n")
+        for stock in stocks_list: 
+            print(f'Starting with {stock}')
             webURL = f'https://fmpcloud.io/api/v3/{report}/{stock}?period=quarter&apikey={apikey}'
+            try:
+                response = urlopen(webURL)
+                data = response.read().decode("utf-8")
+                if data!="[ ]":
+                    df = json_normalize(json.loads(data))
+                    finalDf = finalDf.append(df)
+                else:
+                    print("\nSYMBOL NOT FOUND: Check maybe Stock Symbol: "+str(stock)+"\n\n")
 
-            response = urlopen(webURL)
-            data = response.read().decode("utf-8")
-            
-            df = json_normalize(json.loads(data))
+            except:
+                print("--------------------------\nCODE ERROR---------------------------------\n")
+                
 
-        #url = ("https://financialmodelingprep.com/api/v3/financials/income-statement/AAPL")
-        #print(get_jsonparsed_data(url))
 
-        finalDf = finalDf.append(df)
+        print("\n \n----- Done -----")
+        return finalDf.set_index("date")
     
-    
-    
-    return finalDf.set_index("date")
 
 
-# In[104]:
+# In[157]:
 
 
-df =getData("income-statement","financials",stocks_list)
+dividend_stock_list = []
 
+df_fR =getData("financial-ratios","ratios",dividend_stock_list)
 
-# In[94]:
+df_cF =getData("cash-flow-statement","financials",dividend_stock_list)
 
+df_bS =getData("balance-sheet-statement","financials",dividend_stock_list)
 
-df =getData("financial-ratios","ratios",stocks_list)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+df_iS =getData("income-statement","financials",dividend_stock_list)
 
 
 # In[ ]:
